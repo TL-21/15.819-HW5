@@ -1,5 +1,32 @@
 # Uber NYC Operations Center — Assignment 5
 
+## Quick Start
+
+```bash
+# 1. Clone the repo
+git clone <repo-url>
+cd HW5
+
+# 2. Create and activate conda environment
+conda create -n uber_nyc python=3.11 -y
+conda activate uber_nyc
+pip install pandas pyarrow tqdm requests
+
+# 3. Download raw TLC trip data (~400 MB, one time)
+python download_data.py
+
+# 4. Preprocess into dashboard-ready JSON (~30 sec, one time)
+python preprocess.py
+
+# 5. Launch the dashboard
+python serve.py
+# → automatically opens http://localhost:8050 in your browser
+```
+
+> **JS libraries are bundled** — `static/libs/` already contains Plotly.js and Leaflet.js. Steps 3–4 are the only data setup required after cloning.
+
+---
+
 ## Overview
 
 This dashboard simulates the real-time operations view that Uber's NYC General Manager would use to monitor ride performance, revenue health, geographic demand, and driver economics. It replays two years of actual TLC trip data (Jan 2023 – Dec 2024) as an animated time-series, advancing hour by hour with configurable playback speed.
