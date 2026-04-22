@@ -185,7 +185,7 @@ function updateKPIs() {
   const lw   = hourOf(S.lw,    S.hour);
   const rides  = cur?.rides ?? 0;
   const dtotal = dayRides(S.today);
-  const peak   = peakOf(S.today);
+  const peak   = peakOf(S.lw ?? S.yest ?? S.today);
 
   // Rides
   animNum('k-rides', rides, v => Math.round(v).toLocaleString());
@@ -198,11 +198,11 @@ function updateKPIs() {
   setDelta('k-fare-d', fare, yest?.avg_fare, 'vs yesterday');
   setText('k-fare-s', cur?.avg_miles != null ? cur.avg_miles.toFixed(1)+' mi avg trip' : '');
 
-  // Demand vs peak
+  // Demand vs speculated peak (based on last week same day)
   const pct = peak.rides > 0 ? rides/peak.rides*100 : 0;
   animNum('k-peak', pct, v => Math.round(v)+'%');
   setText('k-peak-d', '');
-  setText('k-peak-s', S.hour === peak.h ? '★ THIS IS THE PEAK HOUR' : 'Peak at '+String(peak.h).padStart(2,'0')+':00');
+  setText('k-peak-s', 'Forecast peak at '+String(peak.h).padStart(2,'0')+':00 · last week');
 
   // WoW
   const lwR = lw?.rides;

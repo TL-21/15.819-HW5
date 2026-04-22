@@ -115,128 +115,226 @@ Also writes:
 
 ---
 
-## Dashboard Elements — Detailed Documentation
+## Complete KPI & Metric Reference
 
-### Header: Live Clock & Date Navigation
+Every number visible on the dashboard is documented below with its exact calculation and the business reason it matters to a NYC GM.
 
-The clock displays the **simulated date and time** of the data being shown, not the real wall clock. This creates the "as if you are the GM on that day" experience. The colon blinks when playback is running (LIVE badge) and is static when paused.
+---
 
-- **◀ / ▶ buttons**: jump one calendar day backward or forward
-- **Date picker**: jump directly to any date in the 2023–2024 range
-- **Hour slider**: scrub to any hour without using playback
+### Header
 
-### KPI Row (4 Headline Cards)
+#### Simulated Clock
+- **Display**: `HH:MM AM/PM · DAY · MON DD, YYYY`
+- **Calculation**: derived from `S.dates[S.idx]` (the current date in the dataset) and `S.hour` (0–23, the current playback hour). Not the real wall clock.
+- **Business rationale**: Creates a first-person perspective — the GM sees the dashboard "as of" a specific moment, not as a historical summary. This makes temporal patterns visceral (watching demand drop off at 3 AM vs. explode at 5 PM).
 
-#### 1. RIDES THIS HOUR
-Total ride count for the current borough-aggregated hour.
-- **▲/▼ vs yesterday**: percentage change vs the same clock hour the day before. If +15%, demand is unusually high — the GM should check driver availability.
-- **% of today's demand**: contextualizes whether this is a peak or quiet hour within the day.
+#### LIVE / PAUSED Badge
+- **LIVE** (red, pulsing): playback is running — hours are advancing automatically
+- **PAUSED** (gray): playback is stopped — the GM is exploring a specific moment
 
-#### 2. AVG RIDER FARE
-Mean `base_passenger_fare` across all rides in this hour.
-- **▲/▼ vs yesterday**: fare drift. A rising fare with rising demand suggests supply tightness; rising fare with falling demand may indicate quality/regulatory issues.
-- **X.X mi avg trip**: average trip miles for context — longer trips naturally cost more.
+---
 
-#### 3. DEMAND VS PEAK
-Current hour rides as a % of today's single busiest hour.
-- 100% = this IS the peak hour (a star annotation appears)
-- Tells the GM how far from peak they are — useful for scheduling driver shift ends
+### KPI Row — 4 Headline Cards
 
-#### 4. VS SAME HOUR LAST WEEK
-Week-over-week % change for this specific clock hour (not daily total).
-- Colored green (growth) or red (decline)
-- The most important leading indicator of sustained trend changes. A GM seeing −10% WoW for three consecutive Fridays at 9 PM should investigate.
+#### Card 1: RIDES THIS HOUR
+
+| Field | Detail |
+|-------|--------|
+| **Main value** | `sum of rides across all boroughs for (current_date, current_hour)` |
+| **Source** | `by_date/YYYY-MM-DD.json → hours[h].rides` |
+| **▲/▼ vs yesterday** | `(today_rides − yesterday_rides) / yesterday_rides × 100%` where yesterday = same clock hour, date − 1 |
+| **% of today's demand** | `today_hour_rides / sum(today_all_hours_rides) × 100%` |
+
+**Business rationale**: The single most watched number for a GM. Volume is the top-line health signal. The delta vs. yesterday tells whether today is running hot or cold at this specific hour — a −20% reading at 6 PM on a Friday is an immediate red flag worth investigating (weather? service outage? competitor promotion?). The "% of today's demand" contextualizes it: 5% at 3 AM is normal; 5% at 6 PM is a crisis.
+
+---
+
+#### Card 2: AVG RIDER FARE
+
+| Field | Detail |
+|-------|--------|
+| **Main value** | `avg_base_passenger_fare` for (current_date, current_hour), averaged across all boroughs weighted by ride count |
+| **Source** | `by_date/YYYY-MM-DD.json → hours[h].avg_fare` |
+| **▲/▼ vs yesterday** | `(today_fare − yesterday_fare) / yesterday_fare × 100%` |
+| **X.X mi avg trip** | `avg_trip_miles` for this hour — see Per-Ride Economics |
+
+**Note**: `base_passenger_fare` is the rider-facing price before tips, tolls, Black Car Fund surcharge, and the NYC Congestion Surcharge. It is not the total amount charged to the rider's card, but it is the controllable pricing signal.
+
+**Business rationale**: Fare level determines both rider demand elasticity and gross revenue per trip. A fare rising alongside rising rides = healthy surge pricing working. A fare rising while rides fall = potential over-pricing or supply shortage causing rides to be declined. A fare falling while rides grow = pricing may be too low, leaving revenue on the table. The avg miles sub-line is essential context: a $30 fare on a 2-mile trip vs. a $30 fare on a 10-mile trip tell very different stories.
+
+---
+
+#### Card 3: VS FORECAST PEAK
+
+| Field | Detail |
+|-------|--------|
+| **Main value** | `current_hour_rides / last_week_same_day_peak_rides × 100%` |
+| **Forecast source** | `peakOf(S.lw)` — finds the single highest-ride hour in last week's same calendar day |
+| **Fallback** | If last-week data unavailable (first 7 days of dataset), falls back to yesterday's peak, then today's own data |
+| **Sub-text** | `Forecast peak at HH:00 · last week` — shows the predicted peak hour and its basis |
+
+**Design decision**: We deliberately use last week's same day rather than today's actual peak, because a real GM cannot see the future. Last week's pattern is the best available predictor of today's intraday shape. For example, if last Friday peaked at 6 PM with 35,000 rides, and it's currently 2 PM Friday with 18,000 rides, the card reads "51% of forecast peak — peak expected at 18:00."
+
+**Business rationale**: Driver shift scheduling is the primary use case. Knowing that peak is 4 hours away at 6 PM lets the GM send driver incentive notifications at 4:30 PM to ensure supply is available before the spike. Seeing that current demand is already at 90% of last week's peak at 2 PM suggests today may be unusually strong — worth activating standby drivers early.
+
+---
+
+#### Card 4: VS SAME HOUR LAST WEEK
+
+| Field | Detail |
+|-------|--------|
+| **Main value** | `(current_hour_rides − last_week_same_hour_rides) / last_week_same_hour_rides × 100%` |
+| **Source** | `S.lw` (last week's date file, same hour index) |
+| **Color** | Green if ≥ 0%, red if < 0% |
+| **Sub-text** | "vs same hour last week" (static label) |
+
+**Business rationale**: Day-over-day comparisons are noisy because Mondays look different from Fridays. Week-over-week at the same hour controls for day-of-week seasonality, making it the cleanest signal of true growth or decline. A GM seeing −10% WoW for three consecutive Fridays at 9 PM has a structural problem, not a weather blip. This metric is the dashboard's most important leading indicator of sustained trend changes.
+
+---
 
 ### Left Panel
 
 #### 24-HR Demand Pulse
-A filled area chart showing **all 24 hours of today's ride counts** (bright green fill) overlaid with **yesterday's same-day profile** (dotted gray line).
 
-- The bright-filled region to the left of the vertical cursor = hours already elapsed
-- The dimmer region to the right = hours yet to come (historical actuals, since this is replay)
-- **GM use**: spot if today is tracking above/below yesterday's shape. A midday slump vs. yesterday's midday peak is immediately visible.
+| Element | Detail |
+|---------|--------|
+| **Green filled area (bright)** | Rides per hour for hours 0 → current_hour of today |
+| **Green filled area (dim)** | Rides per hour for hours current_hour+1 → 23 of today (full day already in data) |
+| **Dotted gray line** | Yesterday's hourly ride profile across all 24 hours |
+| **Vertical dashed line** | Current hour marker |
+| **Green dot** | Exact position of current hour on today's curve |
+| **Source** | `S.today.hours[*].rides` and `S.yest.hours[*].rides` |
+
+**Business rationale**: The intraday shape matters as much as the total. A GM needs to see whether today's curve is tracking above or below yesterday's at every hour — not just the current snapshot. A morning that tracks 15% above yesterday through hours 6–10 suggests a strong day ahead; a sudden dip at hour 14 vs. yesterday's hour 14 is an early warning requiring investigation. The split bright/dim fill makes the elapsed vs. upcoming hours visually distinct.
+
+---
 
 #### Borough Breakdown · This Hour
-Horizontal bars for Manhattan, Brooklyn, Queens, Bronx, Staten Island.
-- **Bar width** = share of total rides this hour (matches the % label)
-- **Bright green** = the leading borough; **dim green** = others
-- **Right label**: `share% · absolute count`
-- **GM use**: if Brooklyn suddenly spikes as a share, it may signal an event (concert, sports) worth deploying targeted driver incentives in that zone.
+
+| Element | Calculation |
+|---------|------------|
+| **Bar width** | `borough_rides / total_all_borough_rides × 100%` (share of total, matches label) |
+| **% label** | Same as bar width — avoids the confusing mismatch of bar-proportional-to-max vs. label-proportional-to-total |
+| **Ride count** | Absolute rides for that borough in the current hour |
+| **Leader (bright green)** | Borough with highest absolute rides this hour |
+| **Others (dim green)** | All other boroughs |
+| **Source** | `hours[h].boroughs[borough].rides` |
+
+**Business rationale**: Geographic demand concentration is the key input to driver deployment decisions. If Manhattan is at 38% of rides but only 25% of available drivers are positioned there, the GM should redirect. If Brooklyn's share suddenly spikes from 25% to 40%, an event (concert at Barclays, for example) is likely driving localized demand — warranting a geo-targeted driver incentive push in that borough. The animated bars make these shifts immediately visible during playback.
+
+---
 
 #### Revenue Ops · This Hour
-Hourly totals computed as `rides × per-ride average`:
 
-| Metric | Formula | GM Relevance |
-|--------|---------|-------------|
-| **Gross Bookings** | `rides × avg_fare` | Total platform transaction volume; top-line health |
-| **Uber Net Revenue** | `rides × (avg_fare − avg_pay)` | What Uber actually keeps; operational profitability |
-| **Driver Payouts** | `rides × avg_pay` | Total labor cost for this hour; driver earnings health |
-| **Rides / Min** | `rides ÷ 60` | Operational pace; useful for real-time capacity planning |
+All four metrics are **hourly totals** — the cumulative economic impact of every ride completed in this one hour across all five boroughs.
+
+| Metric | Formula | Source fields |
+|--------|---------|---------------|
+| **Gross Bookings** | `rides × avg_fare` | `hours[h].rides`, `hours[h].avg_fare` |
+| **Uber Net Revenue** | `rides × (avg_fare − avg_pay)` | All three fields above |
+| **Driver Payouts** | `rides × avg_pay` | `hours[h].rides`, `hours[h].avg_pay` |
+| **Rides / Min** | `rides ÷ 60` | `hours[h].rides` |
+
+**Gross Bookings business rationale**: The top-line number. A $200k Gross Bookings hour means the platform processed $200k in rider payments. This is the number Uber's finance team tracks as "GMV" (Gross Merchandise Value) — it drives everything from payment processing volume to regulatory fee calculations.
+
+**Uber Net Revenue business rationale**: The $33k "kept" after paying drivers is Uber's actual contribution margin from operations this hour, before corporate overhead. It funds technology, marketing, and investor returns. Tracking this in real time catches margin erosion from unusual driver pay patterns or abnormally cheap rides.
+
+**Driver Payouts business rationale**: This is Uber's largest single cost. A GM who watches this trend relative to Gross Bookings can spot payout-ratio drift early. If Driver Payouts rise from 80% to 87% of Gross Bookings over a month, the GM needs to investigate: are drivers getting better at selecting high-pay trips? Is the algorithm over-incentivizing? Is a competitor war causing Uber to overpay to retain drivers?
+
+**Rides / Min business rationale**: An operational tempo metric. At 148 rides/min, customer support volume, payment processing, and safety monitoring systems must sustain that throughput. Sudden drops in rides/min during a normally busy period are an early signal of an app outage or data pipeline issue.
+
+---
 
 #### Per-Ride Economics · This Hour
 
-| Metric | Source Field | GM Relevance |
-|--------|-------------|-------------|
-| **Rider Fare** | `avg_base_passenger_fare` | Pricing level; compare to city averages and competitors |
-| **Driver Pay** | `avg_driver_pay` | Driver satisfaction proxy; low pay → driver churn |
-| **Avg Miles** | `avg_trip_miles` | Trip length profile; longer trips = more expensive rides |
-| **Platform Margin** | `(fare − pay) / fare × 100` | Take rate; target range ~20–28% for sustainable ops |
+These are **per-trip averages** — what a single average ride looks like economically this hour.
+
+| Metric | Formula | Source field | Target range |
+|--------|---------|-------------|--------------|
+| **Rider Fare** | `avg_base_passenger_fare` (weighted avg) | `hours[h].avg_fare` | Market-dependent |
+| **Driver Pay** | `avg_driver_pay` (weighted avg) | `hours[h].avg_pay` | ≥ $18–22 in NYC |
+| **Avg Miles** | `avg_trip_miles` (weighted avg) | `hours[h].avg_miles` | Context only |
+| **Platform Margin** | `(avg_fare − avg_pay) / avg_fare × 100` | Derived | 20–28% |
+
+**Rider Fare business rationale**: The pricing signal. Uber's fare is set by an algorithm balancing demand, supply, distance, and surge multipliers. The GM monitors this to ensure fares aren't drifting too high (killing demand) or too low (not compensating for driver supply costs). Cross-referencing with avg miles is essential: a $25 fare on a 2-mile trip is very different from a $25 fare on a 10-mile trip — the former implies surge pricing; the latter is near-baseline rates.
+
+**Driver Pay business rationale**: NYC has among the highest guaranteed driver pay floors of any Uber market. Low driver pay → driver churn → supply shortage → customers waiting longer → demand erosion. Watching avg_pay relative to avg_fare tells the GM whether the platform is balancing driver and rider interests.
+
+**Avg Miles business rationale**: Trip length is a driver of both fare and time-per-trip. Longer trips mean fewer trips per driver-hour but higher fare per trip. A shift toward shorter trips (common during surge periods when riders take nearby rides) compresses per-ride revenue but may increase ride frequency. The GM uses this to understand the trip-mix composition.
+
+**Platform Margin business rationale**: Uber's take rate — the percentage of the rider fare the platform keeps. The TLC data implies a rate typically between 15–25% in NYC. Below 18% suggests the platform is under margin pressure (possibly from driver guarantees or promotions). Above 28% may attract regulatory attention or driver dissatisfaction. This is the key metric Uber's NYC GM would be held accountable for in quarterly reviews.
+
+---
 
 #### GM Alerts · This Hour
-Rule-based signal engine that fires contextual, actionable alerts:
 
-| Condition | Alert Type | Recommended Action |
-|-----------|-----------|-------------------|
-| Rides >15% above yesterday | Hot (green) | Activate driver bonuses to boost supply |
-| Rides >15% below yesterday | Cold | Consider fare discounts to stimulate demand |
-| WoW change >20% | Hot or Warning | Investigate cause; sustained change may require strategic response |
-| This is the peak hour | Hot | Ensure maximum driver availability; peak is now |
-| Platform margin <18% | Warning | Driver pay may be unsustainably high; review rate structure |
-| Platform margin >30% | Hot | Strong unit economics; opportunity to invest in growth |
-| No anomalies detected | Neutral | Normal operating conditions |
+The alert engine fires rule-based signals every simulated hour. Each alert includes a recommended action so the GM knows exactly what to do, not just what is happening.
 
-Alerts update on every hour tick during playback.
+| Rule | Threshold | Alert Color | Display Text | Business Rationale |
+|------|-----------|-------------|-------------|-------------------|
+| Demand vs yesterday | today_rides > 1.15 × yesterday_rides | 🟢 Hot | "Demand +X% vs yesterday — consider driver incentives to boost supply" | Unusually high demand risks wait times growing → bad rider experience → churn. Proactive driver activation prevents this. |
+| Demand vs yesterday | today_rides < 0.85 × yesterday_rides | 🔵 Cold | "Demand −X% vs yesterday — ease surge pricing to stimulate rides" | Low demand may be self-inflicted by high fares. Reducing surge can recover volume without abandoning the market. |
+| Week-over-week | \|WoW change\| > 20% | 🟢/🟡 | "WoW +/−X% — strong growth / investigate drop" | >20% WoW swings are structural, not random. Growth: ensure infrastructure scales. Decline: investigate root cause before it compounds. |
+| Peak hour detection | current hour = forecast peak hour (from last week) | 🟢 Hot | "Peak hour now. Activate driver bonuses to maximise availability" | The GM gets a real-time reminder when the historically busiest hour arrives — the moment maximum driver availability is most critical. |
+| Platform margin low | margin < 18% | 🟡 Warning | "Platform margin X% — below 18% target. Review driver pay rate" | Sub-18% margin in NYC means Uber is likely not covering corporate overhead from this market. The GM should review whether a driver promo is running that shouldn't be, or if algorithm costs are elevated. |
+| Platform margin high | margin > 30% | 🟢 Hot | "Strong margin X% — healthy unit economics this hour" | Margins above 30% are a signal that the hour is highly efficient. A GM might use this context to justify incremental marketing spend or a limited-time rider promotion that converts demand elasticity into volume. |
+| No anomalies | all rules pass | ⚫ Neutral | "Demand within normal range. No action required" | Absence of alerts is itself informative — it confirms the platform is operating in its normal operating envelope. |
+
+---
 
 ### Right Panel
 
 #### NYC Live Demand Map
-A Leaflet.js map using CartoDB Dark Matter tiles (free, no API key required). Each of the 5 NYC boroughs is represented by two concentric circles:
-- **Inner circle**: radius proportional to ride count (min 6px → max 55px). Animates via ease-out cubic interpolation using `requestAnimationFrame` — no jarring jumps.
-- **Outer glow ring**: 1.6× inner radius, low-opacity fill, creates a "pulse" effect
-- **Tooltip on hover**: borough name, absolute ride count, share of total
-- **Map title**: updates to show the current date being displayed
 
-The visual difference between a 2 AM Manhattan bubble (small) and an 8 PM Manhattan bubble (large) is immediately striking during playback — demand patterns become intuitively clear.
+| Element | Calculation |
+|---------|------------|
+| **Inner circle radius** | `MIN_R + (borough_rides / max_borough_rides) × (MAX_R − MIN_R)` where MIN_R=6px, MAX_R=55px |
+| **Outer glow radius** | `inner_radius × 1.6` |
+| **Animation** | Ease-out cubic interpolation via `requestAnimationFrame` over 420ms — radius changes smoothly, never jumps |
+| **Tooltip** | `borough_name · absolute_rides · share_of_total_%` |
+| **Source** | `hours[h].boroughs[borough].rides` |
 
-#### 90-Day Trailing Trend · Week-Over-Week
-A rolling window chart that **scrolls forward as playback advances**. For each current date, it shows the 90 calendar days ending on that date:
-- **Green filled area**: daily total ride counts
-- **Dotted gray line**: same-day-prior-week rides (lagged 7 days)
-- **Green dot**: today's position in the trend
-- **GM use**: distinguishes short-term noise from structural trend. If the green line has been consistently above the gray line for 4+ weeks, demand is genuinely growing. If it dips below, the GM should investigate.
+**Business rationale**: The map provides immediate spatial intuition that bar charts cannot. During playback, watching Manhattan's bubble grow from tiny at 3 AM to dominant at 6 PM, while Brooklyn's bubble tracks a distinctly different shape (later evening peak), reveals the borough-specific demand rhythm. A GM deploying drivers watches for bubbles to swell in specific areas 30–60 minutes ahead of where they currently are, so they can pre-position supply.
 
-The window moves forward during 10× playback, making seasonal patterns (summer ramp-up, holiday dip, January recovery) visually striking.
+---
+
+#### 90-Day Trailing Ride Trend
+
+| Element | Calculation |
+|---------|------------|
+| **Window** | 90 calendar days ending on the current simulated date |
+| **Green filled area** | `daily.json → rides` for each day in the window |
+| **Dotted gray line** | `daily.json → rides_wow` = rides from 7 days prior (computed in `preprocess.py` as a 7-day lag) |
+| **Green dot** | Today's total daily rides (as of current playback position) |
+| **Window movement** | On every date change (including during playback), the 90-day window shifts forward — old dates drop off the left, new dates appear on the right |
+
+**Business rationale**: The 90-day window is the GM's strategic view, contrasting with the intraday tactical view above. The two lines (current week vs. prior week) reveal whether growth is accelerating, plateauing, or reversing. A GM presenting to leadership would use this chart to show that "the WoW green line has been consistently above the gray line since October — we've sustained positive growth for 12 consecutive weeks." Conversely, a period where green repeatedly dips below gray is the earliest warning of a demand problem before it shows up in monthly reports.
+
+The rolling window creates a compelling animated effect during 10× playback: the viewer watches the chart's time axis scroll forward through all of 2023 and into 2024, with seasonal patterns (summer surge, Thanksgiving dip, January recovery) visually apparent.
 
 ---
 
 ## Week-over-Week Implementation
 
-Per the assignment suggestion, WoW comparisons are implemented in three places:
+Per the assignment suggestion, WoW comparisons are implemented in four places:
 
-1. **KPI Card 4**: `(current_hour_rides − same_hour_last_week_rides) / same_hour_last_week_rides × 100`
-2. **Daily trend chart**: `rides_wow` column in `daily.json` is computed as `rides.shift(7)` equivalent in `preprocess.py`
-3. **KPI Card 1 delta**: `▲/▼ vs yesterday` (1-day lag, a complement to the 7-day WoW)
+| Location | Calculation | Scope |
+|----------|------------|-------|
+| KPI Card 4 | `(hour_rides_today − hour_rides_last_week) / hour_rides_last_week × 100` | Hourly, same clock hour |
+| KPI Card 1 delta | `(hour_rides_today − hour_rides_yesterday) / hour_rides_yesterday × 100` | Day-over-day (1-day lag) |
+| Demand Pulse chart | Overlay of yesterday's full 24-hour profile | Visual shape comparison |
+| 90-Day Trend chart | `rides_wow` column = 7-day lagged daily rides from `preprocess.py` | Daily rolling comparison |
 
 ---
 
 ## Geographic Visualization
 
 The assignment explicitly recommends geographic visualization using location data. We implement this via:
-- **Borough-level animated bubbles** on a live Leaflet map
-- Borough coordinates are hardcoded centroids (Manhattan, Brooklyn, Queens, Bronx, Staten Island)
-- Bubble size encodes demand magnitude; this changes every simulated hour during playback
+- **Borough-level animated bubbles** on a live Leaflet map using CartoDB Dark Matter tiles (no API key required)
+- Borough coordinates are hardcoded geographic centroids for Manhattan, Brooklyn, Queens, Bronx, and Staten Island
+- Bubble size encodes demand magnitude and updates every simulated hour during playback
 
-A zone-level choropleth (263 individual TLC zones) was considered but rejected because borough-level aggregation is the natural granularity of GM decision-making — a GM deploys driver incentives by borough, not by individual zone.
+A zone-level choropleth (263 individual TLC zones) was considered but rejected because borough-level aggregation is the natural granularity of GM decision-making — driver incentives are deployed by borough, not by individual zone, and zone-level data would create visual noise without proportional insight.
 
 ---
 
@@ -246,7 +344,7 @@ A zone-level choropleth (263 individual TLC zones) was considered but rejected b
 # Step 1: create conda environment (one time)
 conda create -n uber_nyc python=3.11
 conda activate uber_nyc
-pip install pandas pyarrow tqdm requests plotly
+pip install pandas pyarrow tqdm requests
 
 # Step 2: download raw data (one time, ~400 MB)
 python download_data.py
@@ -254,22 +352,21 @@ python download_data.py
 # Step 3: preprocess into browser-ready JSON (one time, ~30 seconds)
 python preprocess.py
 
-# Step 4: download JS libraries from installed packages (one time)
-python download_libs.py
-
-# Step 5: start dashboard (every session)
+# Step 4: start dashboard (every session)
 python serve.py
 # → opens http://localhost:8050 in your default browser
 ```
 
-### Keyboard shortcuts / controls
+> JS libraries (Plotly.js, Leaflet.js) are already bundled in `static/libs/` — no separate download step needed.
+
+### Controls
 | Control | Action |
 |---------|--------|
 | **▶ PLAY / ⏸ PAUSE** | Start or stop time playback |
 | **½× 1× 2× 4× 10×** | Set playback speed (hours per second) |
 | **Hour slider** | Jump to any hour within the current day |
 | **◀ ▶** | Navigate one day backward or forward |
-| **Date picker** | Jump directly to any date |
+| **Date picker** | Jump directly to any date in 2023–2024 |
 
 ---
 
@@ -280,18 +377,17 @@ HW5/
 ├── README.md                    ← this file
 ├── download_data.py             ← fetches TLC Parquet, produces aggregated CSVs
 ├── preprocess.py                ← converts CSVs → 731 date JSON files
-├── download_libs.py             ← copies Plotly.js from Python pkg, downloads Leaflet
 ├── serve.py                     ← Python static file server on port 8050
 ├── data/
-│   ├── uber_2023_agg.csv        ← raw aggregated Uber rides, 2023
-│   ├── uber_2024_agg.csv        ← raw aggregated Uber rides, 2024
+│   ├── uber_2023_agg.csv        ← raw aggregated Uber rides, 2023 (gitignored)
+│   ├── uber_2024_agg.csv        ← raw aggregated Uber rides, 2024 (gitignored)
 │   └── taxi_zone_lookup.csv     ← LocationID → Borough/Zone name
 └── static/
     ├── index.html               ← dashboard HTML structure
     ├── style.css                ← dark theme, animations, layout
     ├── app.js                   ← all dashboard logic, playback engine, chart updates
     ├── libs/
-    │   ├── plotly.min.js        ← Plotly.js (copied from Python plotly package)
+    │   ├── plotly.min.js        ← Plotly.js (bundled in repo, no download needed)
     │   ├── leaflet.js           ← Leaflet.js map library
     │   └── leaflet.css          ← Leaflet styles
     └── data/
@@ -313,6 +409,7 @@ HW5/
 - **No weather/events overlay**: The assignment mentions weather and events as enrichment sources. These would strengthen the GM Alerts logic (e.g., "demand spike correlates with heavy rain").
 - **Driver supply is unobserved**: `avg_driver_pay` and `avg_trip_miles` are proxies for supply conditions, but active driver count is not in the public TLC data.
 - **Fare = base passenger fare**: This is the pre-tip, pre-fee amount. Total rider cost including tolls, Black Car Fund, and tips is higher.
+- **Platform Margin is an approximation**: `(avg_fare − avg_pay) / avg_fare` approximates Uber's take rate but omits fixed costs, insurance, and regulatory fees that are also deducted from gross bookings before Uber books revenue.
 
 ---
 
