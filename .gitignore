@@ -1,0 +1,21 @@
+# Large raw data files
+data/uber_2023_agg.csv
+data/uber_2024_agg.csv
+
+# Downloaded JS libraries (reproduced via download_libs.py)
+static/libs/plotly.min.js
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude internal
+.claude/

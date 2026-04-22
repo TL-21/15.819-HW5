@@ -1,0 +1,153 @@
+/* ═══════════════════════════════════════════
+   Uber NYC Ops Center — Dark Theme
+   ═══════════════════════════════════════════ */
+:root {
+  --bg:    #0A0A0A;
+  --card:  #131313;
+  --card2: #1a1a1a;
+  --bdr:   #222222;
+  --bdr2:  #2d2d2d;
+  --grn:   #06C167;
+  --grnA:  rgba(6,193,103,0.12);
+  --grnB:  rgba(6,193,103,0.22);
+  --red:   #FF4B4B;
+  --txt:   #ffffff;
+  --mid:   #888888;
+  --dim:   #444444;
+  --r:     6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,'Inter','Helvetica Neue',sans-serif;overflow:hidden}
+
+/* ── Loading ───────────────────────────────── */
+#loading{position:fixed;inset:0;background:var(--bg);z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.ld-logo{font-size:3.5rem}
+.ld-title{font-size:.9rem;font-weight:800;letter-spacing:.25em;color:var(--grn)}
+.ld-sub{font-size:.65rem;letter-spacing:.15em;color:var(--mid)}
+.ld-bar{width:220px;height:2px;background:var(--bdr);border-radius:2px;overflow:hidden}
+.ld-fill{height:100%;width:0%;background:var(--grn);transition:width .3s}
+
+/* ── Dashboard shell ───────────────────────── */
+#dash{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ── Header ────────────────────────────────── */
+header{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 20px;border-bottom:1px solid var(--bdr);background:var(--card);
+  flex-shrink:0;gap:16px}
+
+.brand-name{font-size:.95rem;font-weight:800;letter-spacing:.15em}
+.brand-sub{font-size:.52rem;letter-spacing:.18em;color:var(--dim);margin-top:2px}
+
+.hdr-clock{text-align:center}
+.clock-row{display:flex;align-items:baseline;gap:6px;justify-content:center}
+.clk-h,.clk-m{font-size:2.4rem;font-weight:800;color:var(--grn);
+  font-variant-numeric:tabular-nums;line-height:1}
+.clk-colon{font-size:2rem;font-weight:800;color:var(--grn);line-height:1}
+.clk-colon.blink{animation:blink .9s step-start infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+.clk-period{font-size:.9rem;color:var(--mid);font-weight:400}
+.clk-date{font-size:.58rem;letter-spacing:.15em;color:var(--mid);margin-top:3px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:5px;
+  border-radius:4px;padding:3px 9px;font-size:.58rem;
+  letter-spacing:.13em;font-weight:700}
+.badge.live{background:rgba(255,75,75,.1);border:1px solid var(--red);color:var(--red)}
+.badge.paused{background:rgba(255,255,255,.04);border:1px solid var(--bdr2);color:var(--dim)}
+.live-dot{width:6px;height:6px;background:var(--red);border-radius:50%;
+  animation:pulse-dot .9s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.7)}}
+
+/* Date nav */
+.hdr-nav{display:flex;align-items:center;gap:7px}
+.nav-btn{background:var(--card2);border:1px solid var(--bdr2);color:var(--mid);
+  border-radius:4px;padding:5px 12px;cursor:pointer;font-size:.8rem;transition:all .15s}
+.nav-btn:hover{border-color:var(--grn);color:var(--grn)}
+.date-picker{background:var(--card2);border:1px solid var(--bdr2);color:var(--mid);
+  border-radius:4px;padding:5px 9px;font-size:.68rem;cursor:pointer;color-scheme:dark}
+
+/* ── Controls bar ──────────────────────────── */
+.ctrl-bar{display:flex;align-items:center;gap:12px;
+  padding:7px 20px;border-bottom:1px solid var(--bdr);
+  background:var(--card);flex-shrink:0}
+.ctrl-lbl{font-size:.56rem;letter-spacing:.15em;color:var(--dim);white-space:nowrap}
+
+#hour-slider{flex:1;accent-color:var(--grn);cursor:pointer;height:4px}
+
+.play-btn{background:var(--grn);color:#000;border:none;border-radius:5px;
+  padding:6px 20px;font-weight:800;font-size:.72rem;letter-spacing:.1em;
+  cursor:pointer;flex-shrink:0;transition:all .15s;white-space:nowrap}
+.play-btn:hover{opacity:.85}
+.play-btn.playing{background:transparent;color:var(--grn);border:1px solid var(--grn)}
+
+#speed-btns{display:flex;gap:4px}
+.spd-btn{background:var(--card2);border:1px solid var(--bdr2);color:var(--mid);
+  border-radius:4px;padding:3px 10px;font-size:.63rem;cursor:pointer;transition:all .15s}
+.spd-btn.on{border-color:var(--grn);color:var(--grn);background:var(--grnA)}
+.spd-btn:hover:not(.on){border-color:#3a3a3a}
+
+/* ── KPI row ────────────────────────────────── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  padding:8px 20px;flex-shrink:0}
+.kpi-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);
+  padding:11px 15px 9px}
+.kpi-lbl{font-size:.56rem;letter-spacing:.13em;color:var(--dim);margin-bottom:3px;text-transform:uppercase}
+.kpi-val{font-size:1.7rem;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi-delta{font-size:.7rem;margin-top:3px;min-height:1.1em;transition:color .3s}
+.kpi-sub{font-size:.62rem;color:var(--mid);margin-top:1px;min-height:1em}
+.up{color:var(--grn)}.dn{color:var(--red)}.nt{color:var(--mid)}
+
+/* ── Main grid ──────────────────────────────── */
+.main-grid{display:grid;grid-template-columns:440px 1fr;flex:1;overflow:hidden;
+  border-top:1px solid var(--bdr)}
+
+/* Left */
+.left-panel{border-right:1px solid var(--bdr);overflow-y:auto;display:flex;flex-direction:column}
+.psec{padding:9px 14px;border-bottom:1px solid var(--bdr)}
+.sec-title{font-size:.56rem;letter-spacing:.15em;color:var(--dim);margin-bottom:6px;text-transform:uppercase}
+
+/* Borough bars */
+#boro-bars{display:flex;flex-direction:column;gap:5px}
+.b-row{display:flex;align-items:center;gap:8px}
+.b-name{font-size:.7rem;color:#bbb;width:88px;flex-shrink:0}
+.b-track{flex:1;background:#111;border-radius:2px;height:14px;overflow:hidden}
+.b-fill{height:100%;background:rgba(6,193,103,0.22);border-radius:2px;
+  transition:width .45s cubic-bezier(.4,0,.2,1),background .3s}
+.b-fill.leader{background:var(--grn)}
+.b-meta{font-size:.63rem;color:var(--mid);width:90px;text-align:right;flex-shrink:0}
+
+/* Economics */
+.eco-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+.eco-item{background:var(--card2);border-radius:4px;padding:8px 10px}
+.eco-lbl{font-size:.52rem;letter-spacing:.1em;color:var(--dim);margin-bottom:3px;text-transform:uppercase}
+.eco-val{font-size:.95rem;font-weight:700;font-variant-numeric:tabular-nums;transition:color .3s}
+.eco-val.green{color:var(--grn)}
+
+/* Alert banner */
+.alert-row{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+.alert-item{display:flex;align-items:center;gap:8px;background:var(--card2);
+  border-radius:4px;padding:6px 10px;border-left:3px solid var(--dim)}
+.alert-item.hot{border-color:var(--grn)}
+.alert-item.cold{border-color:#555}
+.alert-item.warn{border-color:#f5a623}
+.alert-icon{font-size:.8rem;flex-shrink:0}
+.alert-txt{font-size:.62rem;color:#ccc;line-height:1.3}
+
+/* Right */
+.right-panel{display:flex;flex-direction:column;overflow:hidden}
+.map-wrap{flex:1;display:flex;flex-direction:column;padding:9px 14px 0;min-height:0}
+#map{flex:1;border-radius:var(--r);overflow:hidden;min-height:260px}
+.trend-sec{flex-shrink:0}
+
+/* Leaflet overrides */
+.leaflet-container{background:var(--bg) !important}
+.leaflet-control-attribution{background:rgba(0,0,0,.55)!important;color:#444!important}
+.leaflet-control-attribution a{color:#555!important}
+.leaflet-bar a{background:var(--card2)!important;color:var(--mid)!important;
+  border-color:var(--bdr)!important}
+
+/* ── Footer ─────────────────────────────────── */
+.footer{padding:4px 20px;font-size:.5rem;letter-spacing:.1em;color:var(--dim);
+  border-top:1px solid var(--bdr);text-align:center;background:var(--card);flex-shrink:0}

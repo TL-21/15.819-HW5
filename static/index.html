@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Uber NYC Ops Center</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="libs/leaflet.css">
+<script src="libs/plotly.min.js"></script>
+<script src="libs/leaflet.js"></script>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="ld-logo">🚗</div>
+  <div class="ld-title">UBER NYC OPS CENTER</div>
+  <div class="ld-sub" id="ld-msg">Loading data…</div>
+  <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+</div>
+
+<!-- Dashboard -->
+<div id="dash" style="visibility:hidden;display:flex;flex-direction:column">
+
+  <!-- ── Header ─────────────────────────────────────── -->
+  <header>
+    <div class="brand">
+      <div class="brand-name">🚗&nbsp; UBER NYC</div>
+      <div class="brand-sub">OPERATIONS CENTER · 2023–2024</div>
+    </div>
+
+    <div class="hdr-clock">
+      <div class="clock-row">
+        <span class="clk-h" id="clk-h">08</span><span class="clk-colon" id="clk-colon">:</span><span class="clk-m">00</span>
+        <span class="clk-period" id="clk-period">AM</span>
+        <span id="badge-live" class="badge live" style="display:none"><span class="live-dot"></span>LIVE</span>
+        <span id="badge-pause" class="badge paused">⏸ PAUSED</span>
+      </div>
+      <div class="clk-date" id="clk-date">MONDAY · JAN 01, 2023</div>
+    </div>
+
+    <div class="hdr-nav">
+      <button class="nav-btn" id="btn-prev">◀</button>
+      <input type="date" id="date-picker" class="date-picker">
+      <button class="nav-btn" id="btn-next">▶</button>
+    </div>
+  </header>
+
+  <!-- ── Controls ───────────────────────────────────── -->
+  <div class="ctrl-bar">
+    <span class="ctrl-lbl">HOUR</span>
+    <input type="range" id="hour-slider" min="0" max="23" value="8" step="1">
+    <span class="ctrl-lbl" id="hour-display">08:00</span>
+    <button id="play-btn" class="play-btn">▶&nbsp; PLAY</button>
+    <span class="ctrl-lbl">SPEED</span>
+    <div id="speed-btns"></div>
+  </div>
+
+  <!-- ── KPI row ─────────────────────────────────────── -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-lbl">RIDES THIS HOUR</div>
+      <div class="kpi-val" id="k-rides">—</div>
+      <div class="kpi-delta" id="k-rides-d"></div>
+      <div class="kpi-sub"  id="k-rides-s"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl">AVG RIDER FARE</div>
+      <div class="kpi-val" id="k-fare">—</div>
+      <div class="kpi-delta" id="k-fare-d"></div>
+      <div class="kpi-sub"  id="k-fare-s"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl">DEMAND VS PEAK</div>
+      <div class="kpi-val" id="k-peak">—</div>
+      <div class="kpi-delta" id="k-peak-d"></div>
+      <div class="kpi-sub"  id="k-peak-s"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl">VS SAME HOUR LAST WEEK</div>
+      <div class="kpi-val" id="k-wow">—</div>
+      <div class="kpi-delta" id="k-wow-d"></div>
+      <div class="kpi-sub"  id="k-wow-s"></div>
+    </div>
+  </div>
+
+  <!-- ── Main grid ───────────────────────────────────── -->
+  <div class="main-grid">
+
+    <!-- Left panel -->
+    <div class="left-panel">
+      <div class="psec">
+        <div class="sec-title">24-HR DEMAND PULSE · TODAY vs YESTERDAY</div>
+        <div id="demand-chart"></div>
+      </div>
+      <div class="psec">
+        <div class="sec-title">BOROUGH BREAKDOWN · THIS HOUR</div>
+        <div id="boro-bars"></div>
+      </div>
+      <div class="psec">
+        <div class="sec-title">REVENUE OPS · THIS HOUR</div>
+        <div class="eco-grid">
+          <div class="eco-item"><div class="eco-lbl">GROSS BOOKINGS</div><div class="eco-val green" id="e-gross">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">UBER NET REVENUE</div><div class="eco-val green" id="e-uber">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">DRIVER PAYOUTS</div><div class="eco-val" id="e-payouts">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">RIDES / MIN</div><div class="eco-val" id="e-pace">—</div></div>
+        </div>
+      </div>
+      <div class="psec">
+        <div class="sec-title">PER-RIDE ECONOMICS · THIS HOUR</div>
+        <div class="eco-grid">
+          <div class="eco-item"><div class="eco-lbl">RIDER FARE</div><div class="eco-val green" id="e-fare">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">DRIVER PAY</div><div class="eco-val" id="e-pay">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">AVG MILES</div><div class="eco-val" id="e-miles">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">PLATFORM MARGIN</div><div class="eco-val green" id="e-margin">—</div></div>
+        </div>
+      </div>
+      <div class="psec">
+        <div class="sec-title">GM ALERTS · THIS HOUR</div>
+        <div class="alert-row" id="alert-row"></div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+      <div class="map-wrap">
+        <div class="sec-title" id="map-title">NYC LIVE DEMAND MAP</div>
+        <div id="map"></div>
+      </div>
+      <div class="psec trend-sec">
+        <div class="sec-title">120-DAY RIDE TREND · WEEK-OVER-WEEK</div>
+        <div id="trend-chart"></div>
+      </div>
+    </div>
+
+  </div><!-- main-grid -->
+
+  <div class="footer">NYC TLC HIGH VOLUME FOR-HIRE VEHICLE TRIP RECORDS · UBER HV0003 · 2023–2024</div>
+</div><!-- dash -->
+
+<script src="app.js"></script>
+</body>
+</html>
