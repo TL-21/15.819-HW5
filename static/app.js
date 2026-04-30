@@ -16,7 +16,7 @@ const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV
 const DAYS   = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
 const GREEN  = '#06C167';
 const RED    = '#FF4B4B';
-const DIM    = '#1e1e1e';
+const DIM    = '#272c2a';
 const SPEEDS = [{l:'½×',ms:2000},{l:'1×',ms:1000},{l:'2×',ms:500},{l:'4×',ms:250},{l:'10×',ms:100}];
 
 // ── State ─────────────────────────────────────────────
@@ -45,7 +45,7 @@ function baseLayout(h, extra = {}) {
     margin: {l:40,r:10,t:4,b:28},
     paper_bgcolor: plotBg, plot_bgcolor: plotBg,
     showlegend: false,
-    font: {color:'#555', size:10},
+    font: {color:'#717875', size:10},
     xaxis: {gridcolor: DIM, zeroline:false, showline:false, ...extra.xaxis},
     yaxis: {gridcolor: DIM, zeroline:false, showline:false, ...extra.yaxis},
   };
@@ -202,7 +202,7 @@ function updateKPIs() {
   const pct = peak.rides > 0 ? rides/peak.rides*100 : 0;
   animNum('k-peak', pct, v => Math.round(v)+'%');
   setText('k-peak-d', '');
-  setText('k-peak-s', 'Forecast peak at '+String(peak.h).padStart(2,'0')+':00 · last week');
+  setText('k-peak-s', 'Expected peak based on same day last week');
 
   // WoW
   const lwR = lw?.rides;
@@ -215,7 +215,7 @@ function updateKPIs() {
   } else {
     setText('k-wow', '—');
   }
-  setText('k-wow-s', 'vs same hour last week');
+  setText('k-wow-s', 'Compared with the same hour last week');
 }
 
 // ── Number animation ──────────────────────────────────
@@ -367,29 +367,29 @@ function updateAlerts() {
   if (cur && yest && yest.rides > 0) {
     const delta = (cur.rides - yest.rides) / yest.rides * 100;
     if (delta > 15)
-      alerts.push({cls:'hot', icon:'📈', txt:`Demand +${delta.toFixed(0)}% vs yesterday — consider driver incentives to boost supply.`});
+      alerts.push({cls:'hot', icon:'📈', txt:`Demand is up ${delta.toFixed(0)}% vs yesterday — monitor capacity pressure and pickup coverage.`});
     else if (delta < -15)
-      alerts.push({cls:'cold', icon:'📉', txt:`Demand ${delta.toFixed(0)}% vs yesterday — ease surge pricing to stimulate rides.`});
+      alerts.push({cls:'cold', icon:'📉', txt:`Demand is down ${Math.abs(delta).toFixed(0)}% vs yesterday — consider targeted promotions or localized demand stimulation.`});
   }
   if (cur && lw && lw.rides > 0) {
     const wp = (cur.rides - lw.rides) / lw.rides * 100;
     if (Math.abs(wp) > 20)
       alerts.push({cls: wp>0?'hot':'warn', icon: wp>0?'🚀':'⚠️',
-        txt:`WoW ${wp>0?'+':''}${wp.toFixed(0)}% vs last week — ${wp>0?'strong growth, monitor driver supply':'investigate drop, check for service issues'}.`});
+        txt:`Same-hour demand is ${wp>0?'up':'down'} ${Math.abs(wp).toFixed(0)}% vs last week — ${wp>0?'review borough-level coverage for sustained growth':'review market balance and check for localized service issues'}.`});
   }
   const peak = peakOf(S.today);
   if (cur && S.hour === peak.h)
-    alerts.push({cls:'hot', icon:'⚡', txt:`Peak hour now. Activate driver bonuses to maximise availability.`});
+    alerts.push({cls:'hot', icon:'⚡', txt:`Peak demand hour in progress. Prioritize driver coverage and minimize wait times.`});
 
   const margin = cur?.avg_fare && cur?.avg_pay && cur.avg_fare > 0
     ? (cur.avg_fare - cur.avg_pay) / cur.avg_fare * 100 : null;
   if (margin != null && margin < 18)
-    alerts.push({cls:'warn', icon:'💸', txt:`Platform margin ${margin.toFixed(1)}% — below 18% target. Review driver pay rate.`});
+    alerts.push({cls:'warn', icon:'💸', txt:`Platform margin is ${margin.toFixed(1)}% — below the 18% benchmark. Review fare-pay balance.`});
   if (margin != null && margin > 30)
-    alerts.push({cls:'hot', icon:'✅', txt:`Strong margin ${margin.toFixed(1)}% — healthy unit economics this hour.`});
+    alerts.push({cls:'hot', icon:'✅', txt:`Platform margin is ${margin.toFixed(1)}% — healthy unit economics this hour.`});
 
   if (alerts.length === 0)
-    alerts.push({cls:'cold', icon:'—', txt:'Demand within normal range. No action required.'});
+    alerts.push({cls:'cold', icon:'—', txt:'Demand is within the normal range. No immediate action needed.'});
 
   const el = document.getElementById('alert-row');
   if (!el) return;
@@ -417,8 +417,8 @@ function initMap() {
       inner: L.circleMarker(ll,{radius:10,color:GREEN,fillColor:GREEN,
                fillOpacity:.55,weight:2}).addTo(leafMap),
     };
-    markers[b].inner.bindTooltip(b,{direction:'top',opacity:.9,
-      className:'leaflet-tooltip',permanent:false});
+    markers[b].inner.bindTooltip('',{direction:'top',opacity:1,
+      className:'map-tip',permanent:false});
     prevR[b] = 10;
   });
 }
@@ -435,11 +435,15 @@ function updateMap() {
     animMarker(b, target);
 
     // Tooltip content
-    const share = (vals.reduce((a,v)=>a+v,0) > 0)
-      ? (vals[i]/vals.reduce((a,v)=>a+v,0)*100).toFixed(0)+'%'
-      : '—';
+    const total   = vals.reduce((a,v) => a+v, 0);
+    const share   = total > 0 ? (vals[i]/total*100).toFixed(0)+'%' : '—';
+    const boroFare = cur.boroughs?.[b]?.avg_fare;
+    const fareStr  = boroFare != null ? '$'+boroFare.toFixed(2) : '—';
     markers[b].inner.setTooltipContent(
-      `<b>${b}</b><br>${vals[i].toLocaleString()} rides (${share})`
+      `<div class="map-tip-title">${b}</div>` +
+      `<div class="map-tip-row"><span>Rides this hour</span><span>${vals[i].toLocaleString()}</span></div>` +
+      `<div class="map-tip-row"><span>Share of NYC rides</span><span>${share}</span></div>` +
+      `<div class="map-tip-row"><span>Average fare per ride</span><span>${fareStr}</span></div>`
     );
   });
 

@@ -2,18 +2,18 @@
    Uber NYC Ops Center — Dark Theme
    ═══════════════════════════════════════════ */
 :root {
-  --bg:    #0A0A0A;
-  --card:  #131313;
-  --card2: #1a1a1a;
-  --bdr:   #222222;
-  --bdr2:  #2d2d2d;
+  --bg:    #111315;
+  --card:  #191c1e;
+  --card2: #202426;
+  --bdr:   #2c3033;
+  --bdr2:  #383d40;
   --grn:   #06C167;
   --grnA:  rgba(6,193,103,0.12);
   --grnB:  rgba(6,193,103,0.22);
   --red:   #FF4B4B;
   --txt:   #ffffff;
-  --mid:   #888888;
-  --dim:   #444444;
+  --mid:   #98a09c;
+  --dim:   #5e6562;
   --r:     6px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -72,7 +72,7 @@ header{display:flex;align-items:center;justify-content:space-between;
 .ctrl-bar{display:flex;align-items:center;gap:12px;
   padding:7px 20px;border-bottom:1px solid var(--bdr);
   background:var(--card);flex-shrink:0}
-.ctrl-lbl{font-size:.68rem;letter-spacing:.15em;color:var(--dim);white-space:nowrap}
+.ctrl-lbl{font-size:.68rem;letter-spacing:.15em;color:rgba(205,215,210,0.70);white-space:nowrap}
 
 #hour-slider{flex:1;accent-color:var(--grn);cursor:pointer;height:4px}
 
@@ -92,11 +92,11 @@ header{display:flex;align-items:center;justify-content:space-between;
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
   padding:8px 20px;flex-shrink:0}
 .kpi-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);
-  padding:11px 15px 9px}
-.kpi-lbl{font-size:.68rem;letter-spacing:.13em;color:var(--dim);margin-bottom:3px;text-transform:uppercase}
+  padding:11px 15px 9px;box-shadow:0 1px 8px rgba(0,0,0,0.45)}
+.kpi-lbl{font-size:.68rem;letter-spacing:.13em;color:rgba(230,236,232,0.72);margin-bottom:3px;text-transform:uppercase}
 .kpi-val{font-size:2rem;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
 .kpi-delta{font-size:.8rem;margin-top:3px;min-height:1.1em;transition:color .3s}
-.kpi-sub{font-size:.72rem;color:var(--mid);margin-top:1px;min-height:1em}
+.kpi-sub{font-size:.72rem;color:rgba(210,220,216,0.72);margin-top:1px;min-height:1em}
 .up{color:var(--grn)}.dn{color:var(--red)}.nt{color:var(--mid)}
 
 /* ── Main grid ──────────────────────────────── */
@@ -106,13 +106,13 @@ header{display:flex;align-items:center;justify-content:space-between;
 /* Left */
 .left-panel{border-right:1px solid var(--bdr);overflow-y:auto;display:flex;flex-direction:column}
 .psec{padding:10px 16px;border-bottom:1px solid var(--bdr)}
-.sec-title{font-size:.68rem;letter-spacing:.15em;color:var(--dim);margin-bottom:7px;text-transform:uppercase}
+.sec-title{font-size:.68rem;letter-spacing:.15em;color:rgba(220,228,224,0.68);margin-bottom:7px;text-transform:uppercase}
 
 /* Borough bars */
 #boro-bars{display:flex;flex-direction:column;gap:5px}
 .b-row{display:flex;align-items:center;gap:8px}
-.b-name{font-size:.82rem;color:#bbb;width:100px;flex-shrink:0}
-.b-track{flex:1;background:#111;border-radius:2px;height:18px;overflow:hidden}
+.b-name{font-size:.82rem;color:#c5cac7;width:100px;flex-shrink:0}
+.b-track{flex:1;background:#1c1f21;border-radius:2px;height:18px;overflow:hidden}
 .b-fill{height:100%;background:rgba(6,193,103,0.22);border-radius:2px;
   transition:width .45s cubic-bezier(.4,0,.2,1),background .3s}
 .b-fill.leader{background:var(--grn)}
@@ -120,8 +120,8 @@ header{display:flex;align-items:center;justify-content:space-between;
 
 /* Economics */
 .eco-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
-.eco-item{background:var(--card2);border-radius:4px;padding:8px 10px}
-.eco-lbl{font-size:.65rem;letter-spacing:.1em;color:var(--dim);margin-bottom:4px;text-transform:uppercase}
+.eco-item{background:var(--card2);border:1px solid var(--bdr);border-radius:4px;padding:8px 10px}
+.eco-lbl{font-size:.65rem;letter-spacing:.1em;color:rgba(220,228,224,0.68);margin-bottom:4px;text-transform:uppercase}
 .eco-val{font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums;transition:color .3s}
 .eco-val.green{color:var(--grn)}
 
@@ -133,12 +133,12 @@ header{display:flex;align-items:center;justify-content:space-between;
 .alert-item.cold{border-color:#555}
 .alert-item.warn{border-color:#f5a623}
 .alert-icon{font-size:.9rem;flex-shrink:0}
-.alert-txt{font-size:.75rem;color:#ccc;line-height:1.4}
+.alert-txt{font-size:.75rem;color:#d4d8d5;line-height:1.4}
 
 /* Right */
 .right-panel{display:flex;flex-direction:column;overflow:hidden}
 .map-wrap{flex:1;display:flex;flex-direction:column;padding:9px 14px 0;min-height:0}
-#map{flex:1;border-radius:var(--r);overflow:hidden;min-height:260px}
+#map{flex:1;border-radius:var(--r);overflow:hidden;min-height:260px;border:1px solid var(--bdr2)}
 .trend-sec{flex-shrink:0}
 
 /* Leaflet overrides */
@@ -147,6 +147,19 @@ header{display:flex;align-items:center;justify-content:space-between;
 .leaflet-control-attribution a{color:#555!important}
 .leaflet-bar a{background:var(--card2)!important;color:var(--mid)!important;
   border-color:var(--bdr)!important}
+
+/* ── Map tooltip ────────────────────────────── */
+.map-tip{background:#131313 !important;border:1px solid #2d2d2d !important;
+  border-radius:6px !important;padding:10px 13px !important;
+  box-shadow:0 4px 18px rgba(0,0,0,.65) !important;
+  color:#e8ede9 !important;font-family:-apple-system,'Inter','Helvetica Neue',sans-serif;
+  min-width:200px}
+.map-tip::before{border-top-color:#2d2d2d !important}
+.map-tip-title{font-size:.75rem;font-weight:800;letter-spacing:.12em;
+  color:#06C167;text-transform:uppercase;margin-bottom:7px}
+.map-tip-row{display:flex;justify-content:space-between;gap:18px;
+  font-size:.72rem;line-height:1.7;color:rgba(220,230,225,0.75)}
+.map-tip-row span:last-child{font-weight:700;color:#e8ede9;white-space:nowrap}
 
 /* ── Footer ─────────────────────────────────── */
 .footer{padding:4px 20px;font-size:.5rem;letter-spacing:.1em;color:var(--dim);
