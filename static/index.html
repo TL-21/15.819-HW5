@@ -26,7 +26,7 @@
   <header>
     <div class="brand">
       <div class="brand-name">🚗&nbsp; UBER NYC</div>
-      <div class="brand-sub">OPERATIONS CENTER · 2023–2024</div>
+      <div class="brand-sub">OPERATIONS CENTER · <span id="data-range">JAN 2023 – DEC 2024</span></div>
     </div>
 
     <div class="hdr-clock">
@@ -41,7 +41,7 @@
 
     <div class="hdr-nav">
       <button class="nav-btn" id="btn-prev">◀</button>
-      <input type="date" id="date-picker" class="date-picker">
+      <input type="date" id="date-picker" class="date-picker" min="2023-01-01" max="2024-12-31">
       <button class="nav-btn" id="btn-next">▶</button>
     </div>
   </header>
@@ -71,7 +71,7 @@
       <div class="kpi-sub"  id="k-fare-s"></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-lbl">% OF EXPECTED DAILY PEAK</div>
+      <div class="kpi-lbl">DEMAND VS PEAK HOUR</div>
       <div class="kpi-val" id="k-peak">—</div>
       <div class="kpi-delta" id="k-peak-d"></div>
       <div class="kpi-sub"  id="k-peak-s"></div>
@@ -89,35 +89,50 @@
 
     <!-- Left panel -->
     <div class="left-panel">
+
+      <!-- GM Alerts — top priority, always visible first -->
       <div class="psec">
-        <div class="sec-title">24-HR DEMAND PULSE · TODAY vs YESTERDAY</div>
+        <div class="sec-title">GM ALERTS · THIS HOUR</div>
+        <div class="alert-row" id="alert-row"></div>
+      </div>
+
+      <!-- 24-hr demand + today's weather -->
+      <div class="psec">
+        <div class="demand-hdr">
+          <div class="sec-title">24-HR DEMAND PULSE · <span class="legend-inline"><span class="leg-swatch" style="background:var(--grn)"></span>TODAY</span> <span class="legend-inline"><span class="leg-swatch leg-dash"></span>YESTERDAY</span> <span class="leg-cursor">│ = CURRENT HOUR</span></div>
+          <div class="weather-badge" id="weather-badge"></div>
+        </div>
         <div id="demand-chart"></div>
       </div>
+
       <div class="psec">
         <div class="sec-title">BOROUGH BREAKDOWN · THIS HOUR</div>
         <div id="boro-bars"></div>
+      </div>
+      <div class="psec">
+        <div class="sec-title" id="peer-title">SAME DAY · LAST 4 WEEKS — HOURLY RIDES</div>
+        <div id="heatmap-chart"></div>
+        <div id="heatmap-readout"></div>
       </div>
       <div class="psec">
         <div class="sec-title">REVENUE OPS · THIS HOUR</div>
         <div class="eco-grid">
           <div class="eco-item"><div class="eco-lbl">GROSS BOOKINGS</div><div class="eco-val green" id="e-gross">—</div></div>
           <div class="eco-item"><div class="eco-lbl">UBER NET REVENUE</div><div class="eco-val green" id="e-uber">—</div></div>
-          <div class="eco-item"><div class="eco-lbl">DRIVER PAYOUTS</div><div class="eco-val" id="e-payouts">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">DRIVER EARNINGS</div><div class="eco-val" id="e-payouts">—</div></div>
           <div class="eco-item"><div class="eco-lbl">RIDES / MIN</div><div class="eco-val" id="e-pace">—</div></div>
         </div>
       </div>
       <div class="psec">
         <div class="sec-title">PER-RIDE ECONOMICS · THIS HOUR</div>
         <div class="eco-grid">
-          <div class="eco-item"><div class="eco-lbl">RIDER FARE</div><div class="eco-val green" id="e-fare">—</div></div>
-          <div class="eco-item"><div class="eco-lbl">DRIVER PAY</div><div class="eco-val" id="e-pay">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">RIDER BASE FARE</div><div class="eco-val green" id="e-fare">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">DRIVER EARNINGS/RIDE</div><div class="eco-val" id="e-pay">—</div></div>
           <div class="eco-item"><div class="eco-lbl">AVG MILES</div><div class="eco-val" id="e-miles">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">AVG TRIP TIME</div><div class="eco-val" id="e-triptime">—</div></div>
           <div class="eco-item"><div class="eco-lbl">PLATFORM MARGIN</div><div class="eco-val green" id="e-margin">—</div></div>
+          <div class="eco-item"><div class="eco-lbl">REV PER MILE</div><div class="eco-val green" id="e-rpm">—</div></div>
         </div>
-      </div>
-      <div class="psec">
-        <div class="sec-title">GM ALERTS · THIS HOUR</div>
-        <div class="alert-row" id="alert-row"></div>
       </div>
     </div>
 

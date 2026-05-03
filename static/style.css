@@ -132,6 +132,8 @@ header{display:flex;align-items:center;justify-content:space-between;
 .alert-item.hot{border-color:var(--grn)}
 .alert-item.cold{border-color:#555}
 .alert-item.warn{border-color:#f5a623}
+.alert-item.event{border-color:#FFD700;background:rgba(255,215,0,0.05)}
+.alert-item.ok{border-color:var(--grn);background:rgba(6,193,103,0.07)}
 .alert-icon{font-size:.9rem;flex-shrink:0}
 .alert-txt{font-size:.75rem;color:#d4d8d5;line-height:1.4}
 
@@ -160,6 +162,37 @@ header{display:flex;align-items:center;justify-content:space-between;
 .map-tip-row{display:flex;justify-content:space-between;gap:18px;
   font-size:.72rem;line-height:1.7;color:rgba(220,230,225,0.75)}
 .map-tip-row span:last-child{font-weight:700;color:#e8ede9;white-space:nowrap}
+
+/* ── Weather badge ──────────────────────────────────── */
+.demand-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.demand-hdr .sec-title{margin-bottom:0}
+.weather-badge{display:flex;align-items:center;gap:6px;background:var(--card2);
+  border:1px solid var(--bdr);border-radius:5px;padding:4px 10px;
+  font-size:.72rem;color:var(--mid);flex-shrink:0;white-space:nowrap}
+.weather-icon{font-size:1rem}
+.weather-temp{font-weight:700;color:var(--txt)}
+.weather-precip{color:#6ab0f5;font-size:.68rem}
+
+/* ── Inline chart legends ───────────────────────────── */
+.legend-inline{display:inline-flex;align-items:center;gap:4px;font-size:.62rem;
+  letter-spacing:.1em;color:rgba(220,228,224,0.55);margin-left:6px}
+.leg-swatch{display:inline-block;width:14px;height:3px;border-radius:2px;flex-shrink:0}
+.leg-dash{background:repeating-linear-gradient(90deg,#4a5250 0,#4a5250 4px,transparent 4px,transparent 7px)}
+.leg-cursor{font-size:.58rem;letter-spacing:.08em;color:rgba(6,193,103,0.55);margin-left:6px}
+
+/* ── Heatmap legend ─────────────────────────────────── */
+.heatmap-legend{font-size:.62rem;letter-spacing:.1em;color:rgba(220,228,224,0.5);
+  margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.hm-grad{display:inline-block;width:48px;height:6px;border-radius:3px;
+  background:linear-gradient(90deg,#0d1a14,#049650,#06C167);flex-shrink:0}
+.hm-cur-label{color:rgba(6,193,103,0.55)}
+/* ── Heatmap readout ─────────────────────────────────── */
+#heatmap-readout{margin-top:6px;padding:6px 10px;background:var(--card2);
+  border:1px solid var(--bdr);border-left:3px solid var(--grn);border-radius:4px;
+  font-size:.72rem;line-height:1.6;color:rgba(220,228,224,0.80)}
+#heatmap-readout strong{color:var(--grn);font-weight:700}
+#heatmap-readout .hm-rank-hi{color:var(--grn)}
+#heatmap-readout .hm-rank-lo{color:var(--mid)}
 
 /* ── Footer ─────────────────────────────────── */
 .footer{padding:4px 20px;font-size:.5rem;letter-spacing:.1em;color:var(--dim);
