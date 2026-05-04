@@ -134,6 +134,11 @@ header{display:flex;align-items:center;justify-content:space-between;
 .alert-item.warn{border-color:#f5a623}
 .alert-item.event{border-color:#FFD700;background:rgba(255,215,0,0.05)}
 .alert-item.ok{border-color:var(--grn);background:rgba(6,193,103,0.07)}
+
+/* ── Event map label ─────────────────────────────────── */
+.ev-label{white-space:normal;font-size:.55rem;font-weight:800;color:rgba(0,0,0,0.85);
+  letter-spacing:.04em;line-height:1.35;pointer-events:none;text-align:center;
+  transform:translate(-50%,-50%);display:inline-block}
 .alert-icon{font-size:.9rem;flex-shrink:0}
 .alert-txt{font-size:.75rem;color:#d4d8d5;line-height:1.4}
 

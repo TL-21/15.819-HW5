@@ -630,6 +630,7 @@ function updateEventMarker() {
   if (eventMarker) {
     eventMarker.inner.remove();
     eventMarker.outer.remove();
+    eventMarker.label.remove();
     eventMarker = null;
   }
   ++evPulseToken;   // cancel any running pulse
@@ -653,12 +654,22 @@ function updateEventMarker() {
   const radius = R_MIN + frac * (R_MAX - R_MIN);
 
   const ll = [ev.lat, ev.lon];
+  const labelW    = Math.round(radius * 1.3);
+  const labelHtml = radius >= 18 ? `${ev.icon}<br>${ev.name}` : ev.icon;
+  // Dark text on day (light map), light text on night (dark map)
+  const labelColor = dayOpacity > 0.5 ? 'rgba(20,15,0,0.88)' : 'rgba(255,245,200,0.95)';
+  const labelIcon = L.divIcon({
+    className: '',
+    html: `<div class="ev-label" style="width:${labelW}px;color:${labelColor}">${labelHtml}</div>`,
+    iconSize: [0, 0], iconAnchor: [0, 0],
+  });
   eventMarker = {
     outer: L.circleMarker(ll, {radius: radius * 1.5, color: EVENT_COLOR,
              fillColor: EVENT_COLOR, fillOpacity: .08, weight: 1.5,
              interactive: false}).addTo(leafMap),
     inner: L.circleMarker(ll, {radius, color: EVENT_COLOR,
              fillColor: EVENT_COLOR, fillOpacity: .65, weight: 2}).addTo(leafMap),
+    label: L.marker(ll, {icon: labelIcon, interactive: false}).addTo(leafMap),
   };
   eventMarker.inner.bindTooltip(
     `<div class="map-tip-title">${ev.icon} ${ev.name}</div>` +
